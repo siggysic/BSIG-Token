@@ -65,14 +65,29 @@ contract BSigToken is ERC20, Ownable {
     require(_amount + _lockPresaleSupply <= _presaleSupply, "mint pre-sale is reached limit");
     
     _presaleBalances[_to].amount += _amount;
+    _lockPresaleSupply += _amount;
   }
 
   function releasePresale(address _to) public {
-    require(_presaleBalances[_to].amount != 0, "address not found");
-    require(block.timestamp >= _presaleBalances[_to].releaseTime);
+    require(canReleasePresale(_to), "cannot release transaction now");
 
     _mint(_to, _presaleBalances[_to].amount * 10**uint(decimals()));
     delete _presaleBalances[_to];
+  }
+
+  function canReleasePresale(address _to) public view returns (bool) {
+    require(_presaleBalances[_to].amount != 0, "address not found");
+    require(block.timestamp >= _presaleBalances[_to].releaseTime, "not time to release");
+
+    return true;
+  }
+
+  function getPresaleAmount(address _to) public view returns (uint256) {
+    return _presaleBalances[_to].amount;
+  }
+
+  function getLockSupply() public view returns (uint256) {
+    return _lockPresaleSupply;
   }
 
   function getPause() public view returns (bool) {
